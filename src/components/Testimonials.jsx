@@ -192,63 +192,67 @@ const Testimonials = () => {
       {loading ? (
         <div className="text-center py-10">Loading testimonials...</div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {testimonials.length > 0 ? (
-            testimonials.map((testi) => {
-              console.log(
-                "user.id:",
-                user?.id,
-                "testi.user_id:",
-                testi.user_id
-              ); // debug log
+        <div className="w-full px-10 sm:px-10 mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {testimonials.length > 0 ? (
+              testimonials.map((testi) => {
+                console.log(
+                  "user.id:",
+                  user?.id,
+                  "testi.user_id:",
+                  testi.user_id
+                ); // debug log
 
-              return (
-                <div
-                  key={testi.id}
-                  className="bg-gray-100 p-6 rounded-lg shadow relative"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center flex-1">
-                      <div className="w-12 h-12 bg-[#007E6E] rounded-full mr-4 flex items-center justify-center text-white font-bold">
-                        {testi.display_name?.charAt(0).toUpperCase()}
+                return (
+                  <div
+                    key={testi.id}
+                    className="bg-gray-100 p-6 rounded-lg shadow relative"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center flex-1">
+                        <div className="w-12 h-12 bg-[#007E6E] rounded-full mr-4 flex items-center justify-center text-white font-bold">
+                          {testi.display_name?.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">
+                            {testi.display_name}
+                          </h3>
+                          <p className="text-sm text-gray-500">
+                            {new Date(testi.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold">{testi.display_name}</h3>
-                        <p className="text-sm text-gray-500">
-                          {new Date(testi.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
+
+                      {user?.id?.toString() === testi.user_id?.toString() && (
+                        <button
+                          onClick={() =>
+                            handleDeleteClick(testi.id, testi.user_id)
+                          }
+                          className="text-red-600 hover:text-red-800 text-lg"
+                          title="Delete"
+                        >
+                          ✕
+                        </button>
+                      )}
                     </div>
 
-                    {user?.id?.toString() === testi.user_id?.toString() && (
-                      <button
-                        onClick={() =>
-                          handleDeleteClick(testi.id, testi.user_id)
-                        }
-                        className="text-red-600 hover:text-red-800 text-lg"
-                        title="Delete"
-                      >
-                        ✕
-                      </button>
-                    )}
-                  </div>
+                    <div className="text-yellow-400 mb-2">
+                      {"★".repeat(testi.rating)}
+                      {"☆".repeat(5 - testi.rating)}
+                    </div>
 
-                  <div className="text-yellow-400 mb-2">
-                    {"★".repeat(testi.rating)}
-                    {"☆".repeat(5 - testi.rating)}
+                    <p className="text-gray-600 text-sm">{testi.message}</p>
                   </div>
-
-                  <p className="text-gray-600 text-sm">{testi.message}</p>
-                </div>
-              );
-            })
-          ) : (
-            <div className="col-span-full text-center py-10">
-              <p className="text-gray-500">
-                No testimonials yet. Be the first to share your experience!
-              </p>
-            </div>
-          )}
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <p className="text-gray-500">
+                  No testimonials yet. Be the first to share your experience!
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
