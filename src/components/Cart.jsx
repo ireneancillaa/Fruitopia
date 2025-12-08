@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart, FaTrash, FaArrowLeft } from "react-icons/fa";
+import { FaShoppingCart, FaArrowLeft } from "react-icons/fa";
 
 const cartStyles = `
   @keyframes fadeInUp {
@@ -15,28 +15,12 @@ const cartStyles = `
   .quantity-btn:hover { background-color: #005d52; color: white; }
 `;
 
-// Dummy data untuk tampilan UI
-const dummyCart = [
-  {
-    id: 1,
-    name: "Apple",
-    price: 26000,
-    quantity: 2,
-    image_url: "https://via.placeholder.com/150",
-  },
-  {
-    id: 2,
-    name: "Banana",
-    price: 15000,
-    quantity: 3,
-    image_url: "https://via.placeholder.com/150",
-  },
-];
+const Cart = ({ cartItems = [] }) => {
+  const cart = cartItems;
 
-const Cart = () => {
-  const cart = dummyCart;
   const getTotalItems = () =>
     cart.reduce((sum, item) => sum + item.quantity, 0);
+
   const getTotalPrice = () =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -44,32 +28,34 @@ const Cart = () => {
     return (
       <>
         <style>{cartStyles}</style>
-        <div className="min-h-screen bg-white py-12">
-          <div className="container mx-auto px-4">
-            <div className="flex items-center gap-2 mb-8">
-              <Link
-                to="/"
-                className="flex items-center gap-2 text-[#007E6E] hover:text-[#005d52]"
-              >
-                <FaArrowLeft /> Back Home
-              </Link>
-            </div>
-            <div className="text-center py-20">
-              <div className="inline-block p-6 bg-gray-100 rounded-full mb-6">
-                <FaShoppingCart size={60} className="text-gray-400" />
+        <div className="w-full px-1 sm:px-10 mx-auto">
+          <div className="min-h-screen bg-white py-12">
+            <div className="container mx-auto px-4">
+              <div className="flex items-center gap-2 mb-8">
+                <Link
+                  to="/"
+                  className="flex items-center gap-2 text-[#007E6E] hover:text-[#005d52]"
+                >
+                  <FaArrowLeft /> Back Home
+                </Link>
               </div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                Your Cart is Empty
-              </h1>
-              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                Looks like you haven't added any items to your cart yet.
-              </p>
-              <Link
-                to="/shop"
-                className="inline-block bg-[#007E6E] hover:bg-[#005d52] text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
-              >
-                Continue Shopping
-              </Link>
+              <div className="text-center py-20">
+                <div className="inline-block p-6 bg-gray-100 rounded-full mb-6">
+                  <FaShoppingCart size={60} className="text-gray-400" />
+                </div>
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                  Your Cart is Empty
+                </h1>
+                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                  Looks like you haven't added any items to your cart yet.
+                </p>
+                <Link
+                  to="/shop"
+                  className="inline-block bg-[#007E6E] hover:bg-[#005d52] text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
+                >
+                  Continue Shopping
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -126,7 +112,7 @@ const Cart = () => {
                         </p>
                       </div>
                       <button className="text-red-500 hover:text-red-700 transition-colors p-2">
-                        <FaTrash size={20} />
+                        {/* Hapus item */}
                       </button>
                     </div>
 
