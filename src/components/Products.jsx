@@ -1,39 +1,39 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import supabase from "../utils/supabase";
+import { useAuth } from "../hooks/useAuthHook";
+import LoginModal from "../components/LoginModal";
+import { useDiscount } from "../context/DiscountContext";
 
 const productCardStyles = `
-  @keyframes productSlideIn {
-    from {
-      opacity: 0;
-      transform: scale(0.9) translateY(15px);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
+@keyframes productSlideIn {
+  from { opacity: 0; transform: scale(0.9) translateY(15px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
 
-  .product-card-animate {
-    opacity: 0;
-    animation: productSlideIn 0.6s ease-out forwards;
-  }
+.product-card-animate {
+  opacity: 0;
+  animation: productSlideIn 0.6s ease-out forwards;
+}
 
-  .product-scroll-animate {
-    opacity: 0;
-    transform: scale(0.95) translateY(15px);
-    transition: all 0.6s ease-out;
-  }
+.product-scroll-animate {
+  opacity: 0;
+  transform: scale(0.95) translateY(15px);
+  transition: all 0.6s ease-out;
+}
 
-  .product-scroll-animate.visible {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.product-scroll-animate.visible {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
 `;
 
 const Products = () => {
+  const { user } = useAuth();
+  const { discounts } = useDiscount();
   const [productData, setProductData] = useState([]);
   const [animatingCards, setAnimatingCards] = useState({});
   const [visibleOnScroll, setVisibleOnScroll] = useState({});
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -41,25 +41,22 @@ const Products = () => {
       const { data, error } = await supabase
         .from("fruits")
         .select("image_url, name, price, id")
-        .in("id", [1, 2, 3, 4, 5, 6, 7, 8]);
-
-      if (!error && data) {
-        setProductData(data);
-      }
+        .in("id", [1, 2, 3, 4, 5, 6, 7, 8]); // tetap 8 produk
+      if (!error && data) setProductData(data);
     };
     fetchProducts();
   }, []);
 
-  // Initial load animation
+  // Initial animation
   useEffect(() => {
     productData.forEach((product, index) => {
       setTimeout(() => {
         setAnimatingCards((prev) => ({ ...prev, [product.id]: true }));
-      }, index * 100); // 100ms stagger antara card
+      }, index * 100);
     });
   }, [productData]);
 
-  // Scroll animation setup
+  // Scroll animation
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -76,10 +73,31 @@ const Products = () => {
     const cards = containerRef.current?.querySelectorAll("[data-product-id]");
     cards?.forEach((card) => observer.observe(card));
 
-    return () => {
-      cards?.forEach((card) => observer.unobserve(card));
-    };
+    return () => cards?.forEach((card) => observer.unobserve(card));
   }, [productData]);
+
+  const handleAddToCart = (product) => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    const priceToShow =
+      product.name === "Pineapple" && discounts["Pineapple"]
+        ? discounts["Pineapple"]
+        : product.price;
+    alert(
+      `${product.name} added to cart! Price: Rp ${priceToShow.toLocaleString(
+        "id-ID"
+      )}`
+    );
+  };
+
+  const getPrice = (product) => {
+    if (product.name === "Pineapple" && discounts["Pineapple"]) {
+      return discounts["Pineapple"];
+    }
+    return product.price;
+  };
 
   return (
     <>
@@ -94,6 +112,7 @@ const Products = () => {
             you.
           </p>
         </div>
+
         <div
           ref={containerRef}
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
@@ -112,9 +131,11 @@ const Products = () => {
                   alt={item.name}
                   className="w-50 h-50 object-cover rounded transition-all duration-300"
                 />
-
                 <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-full group-hover:translate-y-0 transition-all duration-300 bg-[#007E6E] opacity-60 space-y-3 rounded-2xl">
-                  <button className="text-white font-semibold py-2 px-6 transition-all duration-300">
+                  <button
+                    onClick={() => handleAddToCart(item)}
+                    className="text-white font-semibold py-2 px-6 transition-all duration-300"
+                  >
                     Add to Cart
                   </button>
                 </div>
@@ -122,13 +143,20 @@ const Products = () => {
               <h2 className="font-semibold text-xl mt-2 text-left">
                 {item.name}
               </h2>
-              <p className="text-gray-600 text-sm font-regular text-left">
-                Rp {new Intl.NumberFormat("id-ID").format(item.price)}
+              <p className="text-gray-600 text-sm text-left">
+                Rp {new Intl.NumberFormat("id-ID").format(getPrice(item))}
               </p>
             </div>
           ))}
         </div>
       </div>
+
+      {showLoginModal && (
+        <LoginModal
+          show={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+        />
+      )}
     </>
   );
 };

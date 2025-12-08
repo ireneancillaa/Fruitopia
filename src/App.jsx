@@ -10,19 +10,22 @@ import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 
 import AuthProvider from "./context/AuthProvider";
+import { DiscountProvider } from "./context/DiscountContext";
 
 const App = () => {
   return (
     <AuthProvider>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
-      <Footer />
+      <DiscountProvider>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/testimonials" element={<Testimonials />} />
+          <Route path="/contact" element={<Contact />} />
+        </Routes>
+        <Footer />
+      </DiscountProvider>
     </AuthProvider>
   );
 };

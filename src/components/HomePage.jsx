@@ -166,7 +166,7 @@ const HomePage = () => {
     <>
       <style>{styles}</style>
 
-      <div className="w-full px-10 sm:px-10 mx-auto">
+      <div className="w-full px-1 sm:px-10 mx-auto">
         <div
           className={`${
             isLoaded ? "opacity-100" : "opacity-0"

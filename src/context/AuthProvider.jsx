@@ -9,6 +9,7 @@ export const AuthProvider = ({ children }) => {
   const formatUser = (u) => {
     if (!u) return null;
     return {
+      id: u.id,
       uid: u.id,
       email: u.email,
       name: u.user_metadata?.fullName || u.email.split("@")[0],

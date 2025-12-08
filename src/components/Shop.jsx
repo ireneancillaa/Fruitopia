@@ -1,39 +1,49 @@
 import { useEffect, useState } from "react";
 import supabase from "../utils/supabase";
 import { useAuth } from "../hooks/useAuthHook";
-import { FaShoppingCart, FaTimes } from "react-icons/fa";
+import { FaShoppingCart } from "react-icons/fa";
+import { useDiscount } from "../context/DiscountContext";
 
 const shopStyles = `
-// ... tetap pakai semua CSS yang sama
+.product-card {
+  opacity: 0;
+  transform: translateY(15px) scale(0.95);
+  transition: all 0.6s ease-out;
+}
+.product-card.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.product-card-hover:hover .overlay {
+  opacity: 1;
+}
 `;
 
 function Shop() {
   const { user } = useAuth();
+  const { discounts } = useDiscount();
+
   const [fruits, setFruits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFruit, setSelectedFruit] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [hoveredId, setHoveredId] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [fading, setFading] = useState(false);
   const [visibleCards, setVisibleCards] = useState({});
 
+  // Fetch fruits
   useEffect(() => {
     async function fetchFruits() {
       const { data, error } = await supabase.from("fruits").select("*");
-
-      if (error) {
-        console.error(error);
-        return;
-      }
-
-      setFruits(data);
+      if (error) console.error(error);
+      else setFruits(data);
       setLoading(false);
     }
-
     fetchFruits();
   }, []);
 
-  // Setup scroll animation observer
+  // Scroll animation
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -48,26 +58,19 @@ function Shop() {
 
     const cards = document.querySelectorAll("[data-fruit-id]");
     cards.forEach((card) => observer.observe(card));
-
-    return () => {
-      cards.forEach((card) => observer.unobserve(card));
-    };
+    return () => cards.forEach((card) => observer.unobserve(card));
   }, [fruits]);
 
-  const showNotification = (fruitName) => {
-    setNotification(fruitName);
-    setTimeout(() => setNotification(null), 3000);
+  // Show notification with fade out
+  const showNotification = (msg) => {
+    setNotification(msg);
+    setFading(false); // reset fading
+    setTimeout(() => setFading(true), 2000); // mulai fade out setelah 2 detik
+    setTimeout(() => setNotification(null), 2500); // hapus notification setelah fade selesai
   };
 
-  // Dummy functions pengganti addToCart
-  const handleAddToCart = (fruit) => {
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
-    showNotification(fruit.name);
-    setSelectedFruit(null);
-    setQuantity(1);
+  const applyDiscountedPrice = (fruit) => {
+    return discounts[fruit.name] ?? fruit.price;
   };
 
   const handleQuickAddToCart = (fruit) => {
@@ -75,10 +78,28 @@ function Shop() {
       alert("Please login first");
       return;
     }
-    showNotification(fruit.name);
+    showNotification(
+      `${fruit.name} added to cart! (${applyDiscountedPrice(
+        fruit
+      ).toLocaleString("id-ID")} each)`
+    );
   };
 
-  if (loading) {
+  const handleAddToCart = (fruit) => {
+    if (!user) {
+      alert("Please login first");
+      return;
+    }
+    showNotification(
+      `${fruit.name} x${quantity} added to cart! (${applyDiscountedPrice(
+        fruit
+      ).toLocaleString("id-ID")} each)`
+    );
+    setSelectedFruit(null);
+    setQuantity(1);
+  };
+
+  if (loading)
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -87,99 +108,82 @@ function Shop() {
         </div>
       </div>
     );
-  }
 
   return (
     <>
       <style>{shopStyles}</style>
 
-      <div className="w-full px-10 sm:px-10 mx-auto">
-        {/* Notification Toast */}
-        {notification && (
-          <div className="notification fixed inset-0 z-40 flex items-center justify-center pointer-events-none">
-            <div className="bg-green-500 text-white px-8 py-5 rounded-lg shadow-2xl flex items-center gap-3">
-              <div className="text-3xl">✓</div>
-              <div>
-                <p className="font-semibold text-lg">
-                  {notification} added to cart!
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
+      {/* Notification Modal with Fade Out */}
+      {notification && (
         <div
-          className={`shop-container min-h-screen bg-white py-12 ${
-            selectedFruit ? "modal-open" : ""
+          className={`notification fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+            fading ? "opacity-0" : "opacity-100"
           }`}
         >
-          <div className="container mx-auto px-4">
-            {/* Header */}
-            <div className="shop-header text-center mb-12">
-              <h1 className="text-4xl lg:text-5xl font-bold text-black mb-4">
-                Our Shop
-              </h1>
-              <p className="text-gray-600 text-lg max-w-2xl mx-auto">
-                Browse our finest selection of fresh, premium quality fruits
-                sourced directly from trusted growers.
-              </p>
-            </div>
-
-            {/* Product Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {fruits.map((fruit, index) => (
-                <div
-                  key={fruit.id}
-                  id={`fruit-${fruit.id}`}
-                  data-fruit-id={fruit.id}
-                  className={`product-card product-card-scroll product-card-hover bg-white rounded-2xl overflow-hidden shadow-lg cursor-pointer group loaded-${
-                    (index % 12) + 1
-                  } ${visibleCards[`fruit-${fruit.id}`] ? "visible" : ""}`}
-                  onMouseEnter={() => setHoveredId(fruit.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                >
-                  <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
-                    <img
-                      src={fruit.image_url}
-                      alt={fruit.name}
-                      className="w-full h-full scale-120 object-contain group-hover:scale-110 transition-transform duration-300"
-                    />
-                    {hoveredId === fruit.id && (
-                      <div className="absolute inset-0 bg-[#007E6E] bg-opacity-70 flex flex-col items-center justify-center gap-3 transition-all duration-300">
-                        <button
-                          onClick={() => setSelectedFruit(fruit)}
-                          className="bg-white text-[#007E6E] font-semibold py-3 px-6 rounded-lg hover:bg-gray-100 transition-all duration-200 flex items-center gap-2"
-                        >
-                          <FaShoppingCart size={18} /> View Details
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="p-4">
-                    <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                      {fruit.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                      {fruit.description}
-                    </p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xl font-bold text-[#007E6E]">
-                        Rp {new Intl.NumberFormat("id-ID").format(fruit.price)}
-                      </span>
-                      <button
-                        onClick={() => handleQuickAddToCart(fruit)}
-                        className="bg-[#007E6E] text-white p-2 rounded-lg hover:bg-[#005d52] transition-colors duration-200"
-                        title="Add to cart"
-                      >
-                        <FaShoppingCart size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+          <div className="bg-green-500 text-white px-8 py-5 rounded-lg shadow-2xl flex items-center gap-3">
+            <div className="text-3xl">✓</div>
+            <div>
+              <p className="font-semibold text-lg">{notification}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      <div className="w-full px-10 sm:px-10 mx-auto">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-12">
+          {fruits.map((fruit, idx) => (
+            <div
+              key={fruit.id}
+              id={`fruit-${fruit.id}`}
+              data-fruit-id={fruit.id}
+              className={`product-card product-card-hover bg-white rounded-2xl overflow-hidden shadow-lg cursor-pointer group loaded-${
+                (idx % 12) + 1
+              } ${visibleCards[`fruit-${fruit.id}`] ? "visible" : ""}`}
+              onMouseEnter={() => setHoveredId(fruit.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+                <img
+                  src={fruit.image_url}
+                  alt={fruit.name}
+                  className="w-full h-full scale-110 object-contain group-hover:scale-110 transition-transform duration-300"
+                />
+                {hoveredId === fruit.id && (
+                  <div className="absolute inset-0 bg-[#007E6E] bg-opacity-40 flex flex-col items-center justify-center gap-3 transition-all duration-300">
+                    <button
+                      onClick={() => setSelectedFruit(fruit)}
+                      className="bg-white text-[#007E6E] font-semibold py-3 px-6 rounded-lg hover:bg-gray-100 transition-all duration-200 flex items-center gap-2"
+                    >
+                      <FaShoppingCart size={18} /> View Details
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                  {fruit.name}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                  {fruit.description}
+                </p>
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-[#007E6E]">
+                    Rp{" "}
+                    {new Intl.NumberFormat("id-ID").format(
+                      applyDiscountedPrice(fruit)
+                    )}
+                  </span>
+                  <button
+                    onClick={() => handleQuickAddToCart(fruit)}
+                    className="bg-[#007E6E] text-white p-2 rounded-lg hover:bg-[#005d52] transition-colors duration-200"
+                  >
+                    <FaShoppingCart size={16} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -199,7 +203,6 @@ function Shop() {
                 ✕
               </button>
             </div>
-
             <div className="p-6">
               <img
                 src={selectedFruit.image_url}
@@ -209,14 +212,15 @@ function Shop() {
               <p className="text-gray-700 text-sm mb-4">
                 {selectedFruit.description}
               </p>
-              <div className="mb-6">
-                <p className="text-gray-600 text-sm mb-2">Price</p>
-                <p className="text-3xl font-bold text-[#007E6E]">
-                  Rp{" "}
-                  {new Intl.NumberFormat("id-ID").format(selectedFruit.price)}
-                </p>
-              </div>
-              <div className="mb-6">
+              <p className="text-gray-600 text-sm mb-3">Price</p>
+              <p className="text-3xl font-bold text-[#007E6E]">
+                Rp{" "}
+                {new Intl.NumberFormat("id-ID").format(
+                  applyDiscountedPrice(selectedFruit)
+                )}
+              </p>
+
+              <div className="mb-6 mt-4">
                 <p className="text-gray-600 text-sm mb-3">Quantity</p>
                 <div className="flex items-center gap-3">
                   <button
