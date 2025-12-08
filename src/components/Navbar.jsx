@@ -1,36 +1,38 @@
-import React, { useState, useContext } from 'react'
-import Logo from '../assets/logo.svg'
-import Login from './Login'
-import Register from './Register'
-import { useAuth } from '../hooks/useAuthHook'
-import { CartContext } from '../context/CartContextSetup'
-import { FiShoppingCart } from 'react-icons/fi'
-import { Link } from "react-router-dom"
-import { useLocation } from "react-router-dom"
+import React, { useState } from "react";
+import Logo from "../assets/logo.svg";
+import Login from "./Login";
+import Register from "./Register";
+import { useAuth } from "../hooks/useAuthHook";
+import { FiShoppingCart } from "react-icons/fi";
+import { Link, useLocation } from "react-router-dom";
 
 const MenuLinks = [
-  { id: 1, name: 'Home', link: '/' },
-  { id: 2, name: 'Shop', link: '/shop' },
-  { id: 3, name: 'Testimonials', link: '/testimonials' },
-  { id: 4, name: 'Contact', link: '/contact' }
-]
+  { id: 1, name: "Home", link: "/" },
+  { id: 2, name: "Shop", link: "/shop" },
+  { id: 3, name: "Testimonials", link: "/testimonials" },
+  { id: 4, name: "Contact", link: "/contact" },
+];
 
 const Navbar = () => {
-  const [showLogin, setShowLogin] = useState(false)
-  const [showRegister, setShowRegister] = useState(false)
-  const { isAuthenticated, user, logout } = useAuth()
-  const { getTotalItems } = useContext(CartContext)
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const { isAuthenticated, user, logout } = useAuth();
   const location = useLocation();
+
+  // Dummy cart items count
+  const getTotalItems = () => 0;
 
   const handleCartClick = () => {
     if (!isAuthenticated) {
-      setShowLogin(true)
+      setShowLogin(true);
     } else {
-      window.location.href = '/cart'
+      window.location.href = "/cart";
     }
-  }
+  };
 
-  const visibleMenuLinks = isAuthenticated ? MenuLinks : MenuLinks.filter(l => l.id <= 2)
+  const visibleMenuLinks = isAuthenticated
+    ? MenuLinks
+    : MenuLinks.filter((l) => l.id <= 2);
 
   return (
     <>
@@ -39,7 +41,9 @@ const Navbar = () => {
           <div className="flex items-center py-4 w-full">
             <a href="#" className="flex items-center gap-4">
               <img src={Logo} alt="Logo" className="h-8 w-8 sm:h-10 sm:w-10" />
-              <span className="font-extrabold tracking-widest text-2xl uppercase">FRUITOPIA</span>
+              <span className="font-black tracking-widest text-2xl uppercase">
+                FRUITOPIA
+              </span>
             </a>
 
             <div className="flex-1 hidden lg:flex justify-center">
@@ -48,11 +52,11 @@ const Navbar = () => {
                   <li key={item.id}>
                     <Link
                       to={item.link}
-                      className={
-                        `relative font-medium text-sm pb-1 transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-200 ${location.pathname === item.link
+                      className={`relative font-medium text-sm pb-1 transition-all duration-200 after:content-[''] after:absolute after:bottom-0 after:left-0 after:h-0.5 after:transition-all after:duration-200 ${
+                        location.pathname === item.link
                           ? "text-[#007E6E] after:w-full after:bg-[#007E6E]"
-                          : "text-black hover:text-[#007E6E] after:w-0 after:bg-[#007E6E] hover:after:w-full"}`
-                      }
+                          : "text-black hover:text-[#007E6E] after:w-0 after:bg-[#007E6E] hover:after:w-full"
+                      }`}
                     >
                       {item.name}
                     </Link>
@@ -78,7 +82,9 @@ const Navbar = () => {
 
               {isAuthenticated ? (
                 <>
-                  <span className="text-sm text-[#007E6E] font-semibold">Hi, {user?.name}!</span>
+                  <span className="text-sm text-[#007E6E] font-semibold">
+                    Hi, {user?.name}!
+                  </span>
                   <button
                     onClick={logout}
                     className="px-3 py-2 bg-[#007E6E] text-white rounded-md text-sm font-semibold hover:bg-[#006456] transition"
@@ -112,8 +118,8 @@ const Navbar = () => {
         <Login
           onClose={() => setShowLogin(false)}
           switchToRegister={() => {
-            setShowLogin(false)
-            setShowRegister(true)
+            setShowLogin(false);
+            setShowRegister(true);
           }}
         />
       )}
@@ -122,13 +128,13 @@ const Navbar = () => {
         <Register
           onClose={() => setShowRegister(false)}
           switchToLogin={() => {
-            setShowRegister(false)
-            setShowLogin(true)
+            setShowRegister(false);
+            setShowLogin(true);
           }}
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

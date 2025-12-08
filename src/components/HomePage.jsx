@@ -1,52 +1,53 @@
-import React, { useState, useEffect } from "react"
-import Hero from "./Hero"
-import Services from "./Services"
-import Banner from "./Banner"
-import Products from "./Products"
-import Pineapple from "../assets/pineapple.png"
+import React, { useState, useEffect } from "react";
+import Hero from "./Hero";
+import Services from "./Services";
+import Banner from "./Banner";
+import Products from "./Products";
+import Pineapple from "../assets/pineapple.png";
 
 // Hook untuk deteksi element saat scroll
 const useScrollAnimation = () => {
-  const [visibleElements, setVisibleElements] = useState({})
+  const [visibleElements, setVisibleElements] = useState({});
 
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
-    }
+      rootMargin: "0px 0px -50px 0px",
+    };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          setVisibleElements(prev => ({
+          setVisibleElements((prev) => ({
             ...prev,
-            [entry.target.id]: true
-          }))
-          observer.unobserve(entry.target)
+            [entry.target.id]: true,
+          }));
+          observer.unobserve(entry.target);
         }
-      })
-    }, observerOptions)
+      });
+    }, observerOptions);
 
-    const elements = document.querySelectorAll('[data-scroll-animate]')
-    elements.forEach(el => observer.observe(el))
+    const elements = document.querySelectorAll("[data-scroll-animate]");
+    elements.forEach((el) => observer.observe(el));
 
     return () => {
-      elements.forEach(el => observer.unobserve(el))
-    }
-  }, [])
+      elements.forEach((el) => observer.unobserve(el));
+    };
+  }, []);
 
-  return visibleElements
-}
+  return visibleElements;
+};
 
 const BannerData = {
-  discount: '25% OFF',
-    title: 'Fresh Pineapple',
-    date: 'Limited time offer',
-    image: Pineapple,
-    title2: 'Premium Fruit Selection',
-    title3: 'Winter Freshness Sale',
-    title4: 'Discover our sweetest and juiciest pineapples. Limited stock available',
-    bgColor: '#FFF7D5'
+  discount: "25% OFF",
+  title: "Fresh Pineapple",
+  date: "Limited time offer",
+  image: Pineapple,
+  title2: "Premium Fruit Selection",
+  title3: "Winter Freshness Sale",
+  title4:
+    "Discover our sweetest and juiciest pineapples. Limited stock available",
+  bgColor: "#FFF7D5",
 };
 
 // CSS untuk animasi
@@ -147,51 +148,67 @@ const styles = `
   .stagger-2 { animation-delay: 0.3s; }
   .stagger-3 { animation-delay: 0.5s; }
   .stagger-4 { animation-delay: 0.7s; }
-`
+`;
 
 const HomePage = () => {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const visibleElements = useScrollAnimation()
+  const [isLoaded, setIsLoaded] = useState(false);
+  const visibleElements = useScrollAnimation();
 
   useEffect(() => {
     // Trigger animasi setelah component mount
     const timer = setTimeout(() => {
-      setIsLoaded(true)
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [])
+      setIsLoaded(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <>
       <style>{styles}</style>
-      <div className={`${isLoaded ? 'opacity-100' : 'opacity-0'} transition-opacity duration-500`}>
-        <div className="slide-in-down stagger-1">
-          <Hero />
-        </div>
-        <div 
-          id="services-section"
-          data-scroll-animate
-          className={`fade-in-up stagger-2 ${visibleElements['services-section'] ? 'active' : ''}`}
+
+      <div className="w-full px-10 sm:px-10 mx-auto">
+        <div
+          className={`${
+            isLoaded ? "opacity-100" : "opacity-0"
+          } transition-opacity duration-500`}
         >
-          <Services />
-        </div>
-        <div 
-          id="banner-section"
-          data-scroll-animate
-          className={`slide-in-left stagger-3 ${visibleElements['banner-section'] ? 'active' : ''}`}
-        >
-          <Banner data={BannerData} />
-        </div>
-        <div 
-          id="products-section"
-          data-scroll-animate
-          className={`scale-in stagger-4 ${visibleElements['products-section'] ? 'active' : ''}`}
-        >
-          <Products />
+          <div className="slide-in-down stagger-1">
+            <Hero />
+          </div>
+
+          <div
+            id="services-section"
+            data-scroll-animate
+            className={`fade-in-up stagger-2 ${
+              visibleElements["services-section"] ? "active" : ""
+            }`}
+          >
+            <Services />
+          </div>
+
+          <div
+            id="banner-section"
+            data-scroll-animate
+            className={`slide-in-left stagger-3 ${
+              visibleElements["banner-section"] ? "active" : ""
+            }`}
+          >
+            <Banner data={BannerData} />
+          </div>
+
+          <div
+            id="products-section"
+            data-scroll-animate
+            className={`scale-in stagger-4 ${
+              visibleElements["products-section"] ? "active" : ""
+            }`}
+          >
+            <Products />
+          </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default HomePage
+export default HomePage;
