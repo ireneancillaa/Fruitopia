@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@layer base {
+  @font-face {
+    font-family: 'regular';
+    src: url(./fonts/sf-pro-display-regular.otf);
+  }
+
+  @font-face {
+    font-family: 'medium';
+    src: url(./fonts/sf-pro-display-medium.otf);
+  }
+
+  @font-face {
+    font-family: 'bold';
+    src: url(./fonts/sf-pro-display-bold.otf);
+  }
+}
+
+body {
+  overflow-y: scroll;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
