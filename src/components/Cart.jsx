@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { FaShoppingCart, FaArrowLeft } from "react-icons/fa";
+import { FaShoppingCart, FaTrash, FaCheck } from "react-icons/fa";
+import { useCart } from "../hooks/useCart";
 
 const cartStyles = `
   @keyframes fadeInUp {
@@ -10,52 +11,90 @@ const cartStyles = `
 
   .cart-container { animation: fadeInUp 0.6s ease-out; }
   .cart-item { animation: fadeInUp 0.6s ease-out; transition: all 0.3s ease; }
+  .cart-item.selected { background-color: #f0f9f7; border-color: #007E6E; }
   .cart-item:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 126, 110, 0.1); }
   .quantity-btn { transition: all 0.2s ease; }
   .quantity-btn:hover { background-color: #005d52; color: white; }
+  .checkbox-item { cursor: pointer; accent-color: #007E6E; }
 `;
 
-const Cart = ({ cartItems = [] }) => {
+const Cart = () => {
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [notification, setNotification] = useState(null);
+  const [fading, setFading] = useState(false);
+
+  const {
+    cartItems,
+    updateQuantity,
+    removeFromCart,
+    getTotalItems,
+    selectedItems,
+    toggleSelectItem,
+    selectAllItems,
+    clearSelectedItems,
+    getSelectedTotal,
+    getSelectedQuantity,
+    getShippingFee,
+    getFinalTotal,
+  } = useCart();
   const cart = cartItems;
 
-  const getTotalItems = () =>
-    cart.reduce((sum, item) => sum + item.quantity, 0);
+  const handleDeleteClick = (itemId, itemName) => {
+    setDeleteConfirm({ itemId, itemName });
+  };
 
-  const getTotalPrice = () =>
-    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      removeFromCart(deleteConfirm.itemId);
+      setDeleteConfirm(null);
+    }
+  };
+
+  const handleProceedToCheckout = () => {
+    // Delete semua selected items
+    selectedItems.forEach(itemId => {
+      removeFromCart(itemId);
+    });
+
+    // Hitung total dan quantity
+    const totalQuantity = getSelectedQuantity();
+    const totalPrice = getSelectedTotal();
+
+    // Tampilkan notification
+    setNotification(
+      `Checkout successful! ${totalQuantity} items (Rp ${totalPrice.toLocaleString("id-ID")}) - Thank you for your order!`
+    );
+    setFading(false);
+
+    // Fade out notification setelah 2 detik
+    setTimeout(() => setFading(true), 2000);
+
+    // Hapus notification setelah fade selesai
+    setTimeout(() => setNotification(null), 2500);
+  };
 
   if (cart.length === 0) {
     return (
       <>
         <style>{cartStyles}</style>
         <div className="w-full px-1 sm:px-10 mx-auto">
-          <div className="min-h-screen bg-white py-12">
-            <div className="container mx-auto px-4">
-              <div className="flex items-center gap-2 mb-8">
-                <Link
-                  to="/"
-                  className="flex items-center gap-2 text-[#007E6E] hover:text-[#005d52]"
-                >
-                  <FaArrowLeft /> Back Home
-                </Link>
+          <div className="min-h-screen py-12">
+            <div className="text-center py-20">
+              <div className="inline-block p-6 bg-gray-100 rounded-full mb-6">
+                <FaShoppingCart size={60} className="text-gray-400" />
               </div>
-              <div className="text-center py-20">
-                <div className="inline-block p-6 bg-gray-100 rounded-full mb-6">
-                  <FaShoppingCart size={60} className="text-gray-400" />
-                </div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  Your Cart is Empty
-                </h1>
-                <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
-                  Looks like you haven't added any items to your cart yet.
-                </p>
-                <Link
-                  to="/shop"
-                  className="inline-block bg-[#007E6E] hover:bg-[#005d52] text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
-                >
-                  Continue Shopping
-                </Link>
-              </div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-4">
+                Your Cart is Empty
+              </h1>
+              <p className="text-gray-600 text-lg mb-8 max-w-md mx-auto">
+                Looks like you haven't added any items to your cart yet.
+              </p>
+              <Link
+                to="/shop"
+                className="inline-block bg-[#007E6E] hover:bg-[#005d52] text-white font-bold py-3 px-8 rounded-lg transition-colors duration-200"
+              >
+                Continue Shopping
+              </Link>
             </div>
           </div>
         </div>
@@ -66,34 +105,56 @@ const Cart = ({ cartItems = [] }) => {
   return (
     <>
       <style>{cartStyles}</style>
-      <div className="min-h-screen bg-white py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-4xl font-bold text-black mb-2">
-                Shopping Cart
-              </h1>
-              <p className="text-gray-600">
-                {getTotalItems()} items in your cart
-              </p>
-            </div>
-            <Link
-              to="/shop"
-              className="flex items-center gap-2 bg-[#007E6E] hover:bg-[#005d52] text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
-            >
-              <FaArrowLeft /> Continue Shopping
-            </Link>
+      <div className="w-full px-4 sm:px-10 mx-auto py-8 sm:py-12">
+        <div>
+          <div className="mb-8">
+            <h1 className="text-4xl font-bold text-black mb-2">
+              Shopping Cart
+            </h1>
+            <p className="text-gray-600">
+              {getTotalItems()} items in your cart
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-4">
+          <div className="mb-6 flex gap-4">
+            <button
+              onClick={selectAllItems}
+              className="px-4 py-2 bg-[#007E6E] hover:bg-[#005d52] text-white rounded-lg font-semibold transition"
+            >
+              Select All
+            </button>
+            <button
+              onClick={clearSelectedItems}
+              className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition"
+            >
+              Deselect All
+            </button>
+            {selectedItems.length > 0 && (
+              <div className="ml-auto flex items-center gap-4">
+                <span className="text-sm text-gray-600">
+                  {getSelectedQuantity()} item{getSelectedQuantity() !== 1 ? 's' : ''} selected
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="w-full lg:flex-1 space-y-4">
               {cart.map((item, index) => (
                 <div
                   key={item.id}
-                  className="cart-item bg-white border border-gray-200 rounded-2xl p-6 flex gap-6"
+                  className={`cart-item bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 ${
+                    selectedItems.includes(item.id) ? "selected" : ""
+                  }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <div className="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={selectedItems.includes(item.id)}
+                    onChange={() => toggleSelectItem(item.id)}
+                    className="checkbox-item w-5 h-5 rounded mt-1 shrink-0"
+                  />
+                  <div className="w-full sm:w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shrink-0">
                     <img
                       src={item.image_url}
                       alt={item.name}
@@ -111,20 +172,29 @@ const Cart = ({ cartItems = [] }) => {
                           Rp {new Intl.NumberFormat("id-ID").format(item.price)}
                         </p>
                       </div>
-                      <button className="text-red-500 hover:text-red-700 transition-colors p-2">
-                        {/* Hapus item */}
+                      <button
+                        onClick={() => handleDeleteClick(item.id, item.name)}
+                        className="text-red-500 hover:text-red-700 transition-colors p-2"
+                      >
+                        <FaTrash size={18} />
                       </button>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <span className="text-gray-600 text-sm">Quantity:</span>
-                      <button className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg"
+                      >
                         −
                       </button>
                       <span className="w-8 text-center font-semibold">
                         {item.quantity}
                       </span>
-                      <button className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg"
+                      >
                         +
                       </button>
                     </div>
@@ -145,42 +215,116 @@ const Cart = ({ cartItems = [] }) => {
               ))}
             </div>
 
-            <div className="lg:col-span-1 bg-gradient-to-br from-[#007E6E] to-[#005d52] rounded-2xl p-8 text-white sticky top-24">
-              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-              <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
-                <span>Subtotal ({getTotalItems()} items)</span>
-                <span className="font-semibold">
-                  Rp {new Intl.NumberFormat("id-ID").format(getTotalPrice())}
-                </span>
-              </div>
-              <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
-                <span>Shipping</span>
-                <span className="font-semibold text-green-300">FREE</span>
-              </div>
-              <div className="flex justify-between mb-6 pb-6 border-b border-white/20">
-                <span>Tax (10%)</span>
-                <span className="font-semibold">
-                  Rp{" "}
-                  {new Intl.NumberFormat("id-ID").format(getTotalPrice() * 0.1)}
-                </span>
-              </div>
-              <div className="flex justify-between items-center mb-8">
-                <span className="text-xl font-bold">Total</span>
-                <span className="text-3xl font-bold">
-                  Rp{" "}
-                  {new Intl.NumberFormat("id-ID").format(getTotalPrice() * 1.1)}
-                </span>
-              </div>
-              <button className="w-full bg-white text-[#007E6E] hover:bg-gray-100 font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2">
-                <FaShoppingCart /> Proceed to Checkout
+            <div className="w-full lg:w-96 bg-linear-to-br from-[#007E6E] to-[#005d52] rounded-2xl p-6 sm:p-8 text-white sticky top-20 lg:top-24 h-fit">
+              <h2 className="text-2xl font-bold mb-6">
+                {selectedItems.length > 0 ? "Checkout Summary" : "Order Summary"}
+              </h2>
+
+              {selectedItems.length > 0 && (
+                <div className="mb-6 pb-6 border-b border-white/20">
+                  <p className="text-sm text-white/80 mb-2">Selected Items</p>
+                  <p className="text-2xl font-bold">{getSelectedQuantity()} items selected</p>
+                </div>
+              )}
+
+              {selectedItems.length > 0 && (
+                <>
+                  <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
+                    <span>Subtotal ({getSelectedQuantity()} items)</span>
+                    <span className="font-semibold">
+                      Rp {new Intl.NumberFormat("id-ID").format(getSelectedTotal())}
+                    </span>
+                  </div>
+                  <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
+                    <span>Shipping</span>
+                    <span className={`font-semibold ${getShippingFee() === 0 ? "text-green-500" : ""}`}>
+                      {getShippingFee() === 0 ? (
+                        "FREE"
+                      ) : (
+                        <>Rp {new Intl.NumberFormat("id-ID").format(getShippingFee())}</>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between mb-6 pb-6 border-b border-white/20">
+                    <span>Tax (10%)</span>
+                    <span className="font-semibold">
+                      Rp{" "}
+                      {new Intl.NumberFormat("id-ID").format(
+                        Math.round((getSelectedTotal() + getShippingFee()) * 0.1)
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-8">
+                    <span className="text-xl font-bold">Total</span>
+                    <span className="text-3xl font-bold">
+                      Rp {new Intl.NumberFormat("id-ID").format(getFinalTotal())}
+                    </span>
+                  </div>
+                </>
+              )}
+              <button
+                onClick={handleProceedToCheckout}
+                disabled={selectedItems.length === 0}
+                className={`w-full font-bold py-4 px-6 rounded-xl flex items-center justify-center gap-2 transition ${
+                  selectedItems.length > 0
+                    ? "bg-white text-[#007E6E] hover:bg-gray-100"
+                    : "bg-gray-400 text-white cursor-not-allowed"
+                }`}
+              >
+                <FaCheck size={18} /> Proceed to Checkout
               </button>
               <p className="text-sm text-gray-200 text-center mt-6">
-                ✓ Free shipping on orders over Rp 100,000
+                ✓ Free shipping on orders over Rp 100.000
               </p>
             </div>
           </div>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-black/40">
+            <div className="modal-content bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+              <div className="bg-linear-to-r from-red-500 to-red-600 p-6 text-white">
+                <h2 className="text-2xl font-bold">Delete Item?</h2>
+              </div>
+              <div className="p-6">
+                <p className="text-gray-700 mb-6">
+                  Are you sure you want to delete{" "}
+                  <span className="font-bold text-[#007E6E]">{deleteConfirm.itemName}</span> from
+                  your cart?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setDeleteConfirm(null)}
+                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-lg transition-colors duration-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                  >
+                    <FaTrash size={16} /> Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Checkout Notification */}
+      {notification && (
+        <div
+          className={`fixed inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+            fading ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="bg-green-600 text-white px-8 py-4 rounded-lg shadow-2xl font-semibold text-center max-w-md">
+            {notification}
+          </div>
+        </div>
+      )}
     </>
   );
 };

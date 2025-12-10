@@ -6,25 +6,28 @@ import HomePage from "./components/HomePage";
 import Shop from "./components/Shop";
 import Cart from "./components/Cart";
 import Testimonials from "./components/Testimonials";
-import Contact from "./components/Contact";
+import AboutUs from "./components/AboutUs";
 import Footer from "./components/Footer";
 
 import AuthProvider from "./context/AuthProvider";
 import { DiscountProvider } from "./context/DiscountContext";
+import { CartProvider } from "./context/CartProvider";
 
 const App = () => {
   return (
     <AuthProvider>
       <DiscountProvider>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<Shop />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/testimonials" element={<Testimonials />} />
-          <Route path="/contact" element={<Contact />} />
-        </Routes>
-        <Footer />
+        <CartProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/testimonials" element={<Testimonials />} />
+            <Route path="/about-us" element={<AboutUs />} />
+          </Routes>
+          <Footer />
+        </CartProvider>
       </DiscountProvider>
     </AuthProvider>
   );

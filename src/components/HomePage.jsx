@@ -3,6 +3,8 @@ import Hero from "./Hero";
 import Services from "./Services";
 import Banner from "./Banner";
 import Products from "./Products";
+import Login from "./Login";
+import Register from "./Register";
 import Pineapple from "../assets/pineapple.png";
 
 // Hook untuk deteksi element saat scroll
@@ -152,6 +154,10 @@ const styles = `
 
 const HomePage = () => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [fading, setFading] = useState(false);
   const visibleElements = useScrollAnimation();
 
   useEffect(() => {
@@ -166,7 +172,7 @@ const HomePage = () => {
     <>
       <style>{styles}</style>
 
-      <div className="w-full px-1 sm:px-10 mx-auto">
+      <div className="w-full px-4 sm:px-10 mx-auto">
         <div
           className={`${
             isLoaded ? "opacity-100" : "opacity-0"
@@ -193,7 +199,16 @@ const HomePage = () => {
               visibleElements["banner-section"] ? "active" : ""
             }`}
           >
-            <Banner data={BannerData} />
+            <Banner 
+              data={BannerData} 
+              onLoginRequired={() => setShowLogin(true)}
+              onNotification={(msg) => {
+                setNotification(msg);
+                setFading(false);
+                setTimeout(() => setFading(true), 2000);
+                setTimeout(() => setNotification(null), 2500);
+              }}
+            />
           </div>
 
           <div
@@ -203,10 +218,54 @@ const HomePage = () => {
               visibleElements["products-section"] ? "active" : ""
             }`}
           >
-            <Products />
+            <Products 
+              onLoginRequired={() => setShowLogin(true)}
+              onNotification={(msg) => {
+                setNotification(msg);
+                setFading(false);
+                setTimeout(() => setFading(true), 2000);
+                setTimeout(() => setNotification(null), 2500);
+              }}
+            />
           </div>
         </div>
       </div>
+
+      {/* Notification Modal */}
+      {notification && (
+        <div
+          className={`fixed inset-0 z-40 flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+            fading ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <div className="bg-green-500 text-white px-8 py-5 rounded-lg shadow-2xl flex items-center gap-3">
+            <div className="text-3xl">✓</div>
+            <div>
+              <p className="font-semibold text-lg">{notification}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          switchToRegister={() => {
+            setShowLogin(false);
+            setShowRegister(true);
+          }}
+        />
+      )}
+
+      {showRegister && (
+        <Register
+          onClose={() => setShowRegister(false)}
+          switchToLogin={() => {
+            setShowRegister(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
     </>
   );
 };

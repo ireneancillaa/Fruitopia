@@ -101,8 +101,8 @@ const Services = () => {
   return(
     <>
       <style>{cardAnimationStyles}</style>
-      <div ref={containerRef} className="container mx-auto px-1 md:px-2 max-w-screen-2xl my-14 md:my-20">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 gap-y-8 justify-center">
+      <div ref={containerRef} className="container mx-auto px-4 sm:px-1 md:px-2 max-w-screen-2xl my-12 sm:my-14 md:my-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 gap-y-8 justify-center">
           {
             ServiceData.map((data) => (
               <div

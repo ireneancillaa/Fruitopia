@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import supabase from "../utils/supabase";
-import { useAuth } from "../hooks/useAuthHook";
+import { useCart } from "../hooks/useCart";
 import { FaShoppingCart } from "react-icons/fa";
 import { useDiscount } from "../context/DiscountContext";
+import Login from "./Login";
+import Register from "./Register";
 
 const shopStyles = `
 .product-card {
@@ -17,10 +19,18 @@ const shopStyles = `
 .product-card-hover:hover .overlay {
   opacity: 1;
 }
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
 `;
 
 function Shop() {
-  const { user } = useAuth();
+  const { addToCart } = useCart();
   const { discounts } = useDiscount();
 
   const [fruits, setFruits] = useState([]);
@@ -31,6 +41,8 @@ function Shop() {
   const [notification, setNotification] = useState(null);
   const [fading, setFading] = useState(false);
   const [visibleCards, setVisibleCards] = useState({});
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   // Fetch fruits
   useEffect(() => {
@@ -74,10 +86,7 @@ function Shop() {
   };
 
   const handleQuickAddToCart = (fruit) => {
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
+    addToCart({ ...fruit, quantity: 1 });
     showNotification(
       `${fruit.name} added to cart! (${applyDiscountedPrice(
         fruit
@@ -86,10 +95,7 @@ function Shop() {
   };
 
   const handleAddToCart = (fruit) => {
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
+    addToCart({ ...fruit, quantity });
     showNotification(
       `${fruit.name} x${quantity} added to cart! (${applyDiscountedPrice(
         fruit
@@ -129,8 +135,8 @@ function Shop() {
         </div>
       )}
 
-      <div className="w-full px-10 sm:px-10 mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 py-12">
+      <div className="w-full px-4 sm:px-10 mx-auto pt-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-6 pb-12 mb-14 md:mb-20">
           {fruits.map((fruit, idx) => (
             <div
               key={fruit.id}
@@ -141,6 +147,7 @@ function Shop() {
               } ${visibleCards[`fruit-${fruit.id}`] ? "visible" : ""}`}
               onMouseEnter={() => setHoveredId(fruit.id)}
               onMouseLeave={() => setHoveredId(null)}
+              onClick={() => setSelectedFruit(fruit)}
             >
               <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
                 <img
@@ -175,7 +182,10 @@ function Shop() {
                     )}
                   </span>
                   <button
-                    onClick={() => handleQuickAddToCart(fruit)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleQuickAddToCart(fruit);
+                    }}
                     className="bg-[#007E6E] text-white p-2 rounded-lg hover:bg-[#005d52] transition-colors duration-200"
                   >
                     <FaShoppingCart size={16} />
@@ -235,7 +245,8 @@ function Shop() {
                     onChange={(e) =>
                       setQuantity(Math.max(1, parseInt(e.target.value) || 1))
                     }
-                    className="w-16 text-center border border-gray-300 rounded-lg py-2 font-semibold focus:outline-none focus:border-[#007E6E]"
+                    className="w-12 text-center font-semibold text-gray-800 border border-gray-300 rounded-md py-2 px-2 focus:outline-none focus:border-[#007E6E] focus:ring-1 focus:ring-[#007E6E] bg-white"
+                    min="1"
                   />
                   <button
                     onClick={() => setQuantity(quantity + 1)}
@@ -266,6 +277,26 @@ function Shop() {
             </div>
           </div>
         </div>
+      )}
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          switchToRegister={() => {
+            setShowLogin(false);
+            setShowRegister(true);
+          }}
+        />
+      )}
+
+      {showRegister && (
+        <Register
+          onClose={() => setShowRegister(false)}
+          switchToLogin={() => {
+            setShowRegister(false);
+            setShowLogin(true);
+          }}
+        />
       )}
     </>
   );

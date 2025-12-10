@@ -48,8 +48,8 @@ const FooterLinks = [
 const Footer = () => {
   return (
     <footer className="bg-[#007E6E] py-6 mt-10">
-      <div className="container mx-auto px-1 md:px-2 max-w-screen-2xl">
-        <div className="grid md:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 md:px-2 max-w-screen-2xl">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="py-8 px-4">
             <span className="font-bold tracking-widest text-2xl text-white uppercase">
               FRUITOPIA
@@ -93,18 +93,30 @@ const Footer = () => {
             </div>
             
             <div>
-              <h3 className="text-sm font-bold tracking-wider mb-3">
+              <h3 className="text-sm font-bold tracking-wider mb-4">
                 Our Team
               </h3>
-              <div className="flex gap-4">
+              <div className="flex gap-3 sm:gap-4 flex-wrap">
                 {TeamMembers.map((member) => (
-                  <a key={member.id} href={member.instagram} target="_blank" rel="noopener noreferrer" className="text-center">
-                    <img 
-                      src={member.image} 
-                      alt={member.name}
-                      className="w-12 h-12 rounded-full object-cover hover:opacity-80 transition cursor-pointer border border-white"
-                      title={member.name}
-                    />
+                  <a 
+                    key={member.id} 
+                    href={member.instagram} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="group text-center"
+                  >
+                    <div className="relative">
+                      <img 
+                        src={member.image} 
+                        alt={member.name}
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover hover:scale-110 transition-transform cursor-pointer border border-white group-hover:border-green-500"
+                        title={member.name}
+                      />
+                      <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 transition-colors"></div>
+                    </div>
+                    <p className="text-sm mt-2 text-white tracking-wider group-hover:text-white transition">
+                      {member.name}
+                    </p>
                   </a>
                 ))}
               </div>
@@ -113,7 +125,7 @@ const Footer = () => {
         </div>
         
         <div className="border-t border-white/30 mt-8 pt-6">
-          <p className="text-center text-white text-sm font-regular">
+          <p className="text-center text-white text-sm font-regular tracking-wide">
             &copy; {new Date().getFullYear()} Fruitopia. All rights reserved.
           </p>
         </div>

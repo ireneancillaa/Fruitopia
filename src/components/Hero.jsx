@@ -47,7 +47,7 @@ const Hero = () => {
     speed: 800,
     slidesToShow: 1,
     slidesToScroll: 1,
-    autoplaySpeed: 4000,
+    autoplaySpeed: 2000,
     cssEase: 'ease-in-out',
     pauseOnHover: true,
     pauseOnFocus: true,
@@ -55,39 +55,44 @@ const Hero = () => {
   }
 
   return (
-    <div className="container mx-auto px-1 md:px-2 max-w-screen-2xl">
-      <div className="overflow-hidden rounded-3xl min-h-[550px] sm:min-h-[650px] bg-[#d4eee0] flex justify-center items-center">
-        <div className="container pb-8 sm:pb-0">
+    <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-screen-2xl">
+      <div className="overflow-hidden rounded-2xl sm:rounded-3xl min-h-[480px] sm:min-h-[550px] md:min-h-[650px] bg-gradient-to-br from-[#d4eee0] via-[#c8e6d8] to-[#b8dfd0] flex justify-center items-center shadow-lg">
+        <div className="container pb-6 sm:pb-8 md:pb-0 px-0">
           <Slider {...settings}>
             {HeroData.map((data) => (
-              <div key={data.id} className="py-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-6 px-4">
-                  <div className="flex flex-col justify-center gap-4 pl-4 sm:pl-10 pt-12 sm:pt-0 text-center sm:text-left order-2 sm:order-1 relative z-10">
-                    <h1 className="text-2xl sm:text-6xl lg:text-2xl font-bold text-gray-900">
+              <div key={data.id} className="py-4 sm:py-6 md:py-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 sm:gap-6 md:gap-8 px-3 sm:px-4 md:px-6">
+                  {/* Content Section */}
+                  <div className="flex flex-col justify-center gap-2 sm:gap-3 md:gap-4 pl-0 sm:pl-6 md:pl-10 pt-4 sm:pt-0 text-center sm:text-left order-2 sm:order-1 relative z-10">
+                    <span className="text-xs sm:text-sm md:text-base uppercase tracking-widest font-bold text-[#007E6E] opacity-80">
                       {data.subtitle}
-                    </h1>
-                    <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold">
-                      {data.title}
-                    </h1>
-                    <h1 className="text-4xl uppercase text-white sm:text-[70px] md:text-[90px] xl:text-[135px] font-bold">
-                      {data.title2}
-                    </h1>
-                    <div className="mt-4">
-                      <Link
-                        to="/shop"
-                        className="inline-block px-6 py-3 text-lg font-semibold border border-[#007E6E] text-[#007E6E] rounded-md transition-all duration-300 hover:bg-[#007E6E] hover:text-white"
-                      >
-                        Shop Now
-                      </Link>
+                    </span>
+                    
+                    <div className="space-y-1 sm:space-y-2">
+                      <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-black">
+                        {data.title}
+                      </h1>
+                      <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl uppercase font-black text-[#007E6E]">
+                        {data.title2}
+                      </h2>
                     </div>
+                    
+                    <Link
+                      to="/shop"
+                      className="inline-block mt-3 sm:mt-4 md:mt-6 px-5 sm:px-6 md:px-8 py-2 sm:py-3 md:py-3 text-sm sm:text-base md:text-lg font-bold bg-[#007E6E] text-white rounded-lg sm:rounded-xl transition-all duration-300 hover:bg-[#005d52] hover:shadow-lg hover:scale-105 active:scale-95 w-fit"
+                    >
+                      Shop Now
+                    </Link>
                   </div>
 
-                  <div className="order-1 sm:order-2">
-                    <div className="flex justify-center">
+                  {/* Image Section */}
+                  <div className="order-1 sm:order-2 flex justify-center items-center">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#007E6E] rounded-full opacity-5 blur-2xl"></div>
                       <img
                         src={data.img}
                         alt={data.title2}
-                        className="w-[340px] sm:w-[460px] h-[340px] sm:h-[480px] sm:scale-110 lg:scale-130 object-contain mx-auto drop-shadow-[-8px_4px_6px_rgba(0,0,0,.4)] relative z-40"
+                        className="w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] md:w-[480px] md:h-[480px] lg:w-[560px] lg:h-[560px] object-contain mx-auto drop-shadow-lg relative z-20"
                       />
                     </div>
                   </div>

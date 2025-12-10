@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import supabase from "../utils/supabase";
-import { useAuth } from "../hooks/useAuthHook";
-import LoginModal from "../components/LoginModal";
+import { useCart } from "../hooks/useCart";
 import { useDiscount } from "../context/DiscountContext";
 
 const productCardStyles = `
@@ -27,13 +26,12 @@ const productCardStyles = `
 }
 `;
 
-const Products = () => {
-  const { user } = useAuth();
+const Products = ({ onNotification = () => {} }) => {
+  const { addToCart } = useCart();
   const { discounts } = useDiscount();
   const [productData, setProductData] = useState([]);
   const [animatingCards, setAnimatingCards] = useState({});
   const [visibleOnScroll, setVisibleOnScroll] = useState({});
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -76,20 +74,10 @@ const Products = () => {
     return () => cards?.forEach((card) => observer.unobserve(card));
   }, [productData]);
 
-  const handleAddToCart = (product) => {
-    if (!user) {
-      setShowLoginModal(true);
-      return;
+  const showNotification = (msg) => {
+    if (typeof onNotification === 'function') {
+      onNotification(msg);
     }
-    const priceToShow =
-      product.name === "Pineapple" && discounts["Pineapple"]
-        ? discounts["Pineapple"]
-        : product.price;
-    alert(
-      `${product.name} added to cart! Price: Rp ${priceToShow.toLocaleString(
-        "id-ID"
-      )}`
-    );
   };
 
   const getPrice = (product) => {
@@ -102,61 +90,63 @@ const Products = () => {
   return (
     <>
       <style>{productCardStyles}</style>
-      <div className="container mx-auto px-1 md:px-2 max-w-screen-2xl my-14 md:my-20">
-        <div className="text-center mb-10 max-w-[600px] mx-auto space-y-2">
-          <h1 className="text-3xl lg:text-4xl font-bold text-black">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 max-w-screen-2xl my-12 sm:my-14 md:my-20">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16 max-w-[600px] mx-auto space-y-3">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-black">
             Our Products
           </h1>
-          <p className="text-gray-400 text-sm md:text-base">
-            Explore our wide range of fresh and delicious fruits, handpicked for
-            you.
+          <p className="text-gray-500 text-sm sm:text-base md:text-lg">
+            Explore our wide range of fresh and delicious fruits, handpicked for you.
           </p>
         </div>
 
         <div
           ref={containerRef}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7 md:gap-8"
         >
           {productData.map((item) => (
             <div
               key={item.id}
               data-product-id={item.id}
-              className={`p-3 rounded-lg product-scroll-animate ${
+              className={`product-scroll-animate ${
                 animatingCards[item.id] ? "" : "opacity-0"
               } ${visibleOnScroll[item.id] ? "visible" : ""}`}
             >
-              <div className="relative w-full h-50 bg-gray-100 flex items-center justify-center rounded-2xl overflow-hidden group">
+              <div className="relative w-full h-50 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center rounded-2xl sm:rounded-3xl overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300">
                 <img
                   src={item.image_url}
                   alt={item.name}
-                  className="w-50 h-50 object-cover rounded transition-all duration-300"
+                  className="w-50 h-50 object-cover rounded transition-all duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-full group-hover:translate-y-0 transition-all duration-300 bg-[#007E6E] opacity-60 space-y-3 rounded-2xl">
+                <div className="absolute inset-0 flex flex-col items-center justify-center -translate-y-full group-hover:translate-y-0 transition-all duration-300 bg-[#007E6E] bg-opacity-85 backdrop-blur-sm space-y-3 rounded-2xl sm:rounded-3xl">
                   <button
-                    onClick={() => handleAddToCart(item)}
-                    className="text-white font-semibold py-2 px-6 transition-all duration-300"
+                    onClick={() => {
+                      addToCart({ ...item, quantity: 1 });
+                      showNotification(
+                        `${item.name} added to cart! (Rp ${getPrice(
+                          item
+                        ).toLocaleString("id-ID")} each)`
+                      );
+                    }}
+                    className="text-[#007E6E] font-bold py-2 sm:py-3 px-6 sm:px-8 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-all duration-300 backdrop-blur-sm"
                   >
                     Add to Cart
                   </button>
                 </div>
               </div>
-              <h2 className="font-semibold text-xl mt-2 text-left">
-                {item.name}
-              </h2>
-              <p className="text-gray-600 text-sm text-left">
-                Rp {new Intl.NumberFormat("id-ID").format(getPrice(item))}
-              </p>
+              <div className="mt-4 sm:mt-5">
+                <h2 className="font-bold text-lg sm:text-xl text-black">
+                  {item.name}
+                </h2>
+                <p className="text-[#007E6E] font-semibold text-sm sm:text-base mt-1">
+                  Rp {new Intl.NumberFormat("id-ID").format(getPrice(item))}
+                </p>
+              </div>
             </div>
           ))}
         </div>
       </div>
 
-      {showLoginModal && (
-        <LoginModal
-          show={showLoginModal}
-          onClose={() => setShowLoginModal(false)}
-        />
-      )}
     </>
   );
 };

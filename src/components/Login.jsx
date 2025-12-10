@@ -12,6 +12,18 @@ const Login = ({ onClose, switchToRegister }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Validasi field kosong atau hanya spasi
+    if (!email.trim()) {
+      setError("Email is required.");
+      return;
+    }
+
+    if (!password.trim()) {
+      setError("Password is required.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -46,10 +58,10 @@ const Login = ({ onClose, switchToRegister }) => {
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl p-8 w-full max-w-md shadow-2xl">
-        <h2 className="text-2xl font-bold text-[#007E6E] text-center mb-2">
+        <h2 className="text-2xl font-bold text-[#007E6E] text-center mb-2 tracking-wide">
           Welcome Back
         </h2>
-        <p className="text-center text-sm text-gray-500 mb-6">
+        <p className="text-center text-sm text-gray-500 mb-6 tracking-wide">
           Sign in to your account
         </p>
 
@@ -59,7 +71,7 @@ const Login = ({ onClose, switchToRegister }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email
@@ -70,7 +82,6 @@ const Login = ({ onClose, switchToRegister }) => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
               className="w-full px-3 py-2 border border-gray-200 rounded-md"
-              required
               disabled={loading}
             />
           </div>
@@ -85,7 +96,6 @@ const Login = ({ onClose, switchToRegister }) => {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
               className="w-full px-3 py-2 border border-gray-200 rounded-md"
-              required
               disabled={loading}
             />
           </div>
@@ -93,7 +103,7 @@ const Login = ({ onClose, switchToRegister }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#007E6E] text-white rounded-md font-semibold"
+            className="w-full py-3 bg-[#007E6E] text-white rounded-md font-semibold tracking-wide"
           >
             {loading ? "Signing in..." : "Login"}
           </button>

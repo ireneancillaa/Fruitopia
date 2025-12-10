@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import supabase from "../utils/supabase";
 import { useAuth } from "../hooks/useAuthHook";
+import Login from "./Login";
+import Register from "./Register";
+
+
 
 const Testimonials = () => {
   const { user, isAuthenticated } = useAuth();
@@ -11,6 +15,8 @@ const Testimonials = () => {
   const [error, setError] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   // Fetch testimonials dari view
   const fetchTestimonials = async () => {
@@ -23,8 +29,15 @@ const Testimonials = () => {
     if (error) {
       console.error(error);
       setError("Failed to fetch testimonials");
+      // Load from localStorage as fallback
+      const cachedTestimonials = localStorage.getItem("testimonials_cache");
+      if (cachedTestimonials) {
+        setTestimonials(JSON.parse(cachedTestimonials));
+      }
     } else {
       setTestimonials(data);
+      // Save to localStorage for persistence
+      localStorage.setItem("testimonials_cache", JSON.stringify(data));
     }
     setLoading(false);
   };
@@ -40,10 +53,16 @@ const Testimonials = () => {
       if (error) {
         console.error(error);
         setError("Failed to fetch testimonials");
+        // Load from localStorage as fallback
+        const cachedTestimonials = localStorage.getItem("testimonials_cache");
+        if (cachedTestimonials) {
+          setTestimonials(JSON.parse(cachedTestimonials));
+        }
       } else {
         console.log("Fetched testimonials:", data);
-
         setTestimonials(data);
+        // Save to localStorage for persistence
+        localStorage.setItem("testimonials_cache", JSON.stringify(data));
       }
       setLoading(false);
     };
@@ -57,7 +76,7 @@ const Testimonials = () => {
     setError("");
 
     if (!isAuthenticated) {
-      setError("You must be logged in to submit a testimonial");
+      setShowLogin(true);
       return;
     }
     if (!message.trim()) {
@@ -119,19 +138,24 @@ const Testimonials = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-20">
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold text-black mb-2">
-          Customer Testimonials
-        </h1>
-        <p className="text-gray-500">
-          Hear what our satisfied customers have to say about Fruitopia
-        </p>
-      </div>
+    <>
+      <div className="w-full px-4 sm:px-6 md:px-8 mx-auto py-12 sm:py-16 md:py-20">
+        <div className="text-center mb-10 sm:mb-12 md:mb-16 animate-fade-in" style={{
+          animation: 'fadeInScale 0.6s ease-out'
+        }}>
+          <h1 className="text-4xl sm:text-5xl font-bold text-black mb-2">
+            Customer Testimonials
+          </h1>
+          <p className="text-gray-500 text-sm sm:text-base md:text-lg">
+            Hear what our satisfied customers have to say about Fruitopia
+          </p>
+        </div>
 
       {/* Form Submit Testimonial */}
       {isAuthenticated ? (
-        <div className="max-w-2xl mx-auto bg-white border border-gray-200 rounded-lg p-6 mb-10 shadow">
+        <div className="max-w-2xl mx-auto bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-10 shadow" style={{
+          animation: 'fadeInScale 0.6s ease-out 0.2s forwards'
+        }}>
           <h3 className="text-xl font-semibold mb-4 text-[#007E6E]">
             Share Your Experience
           </h3>
@@ -192,38 +216,37 @@ const Testimonials = () => {
       {loading ? (
         <div className="text-center py-10">Loading testimonials...</div>
       ) : (
-        <div className="w-full px-10 sm:px-10 mx-auto">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.length > 0 ? (
-              testimonials.map((testi) => {
-                console.log(
-                  "user.id:",
-                  user?.id,
-                  "testi.user_id:",
-                  testi.user_id
-                ); // debug log
+        <div className="w-full px-0 sm:px-10 mx-auto">
+          {/* User's Own Testimonials */}
+          {user && testimonials.filter(t => t.user_id === user.id).length > 0 && (
+            <div className="mb-12">
+              <h2 className="text-2xl font-bold text-gray-900 mb-8">
+                Your Reviews
+              </h2>
 
-                return (
-                  <div
-                    key={testi.id}
-                    className="bg-gray-100 p-6 rounded-lg shadow relative"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center flex-1">
-                        <div className="w-12 h-12 bg-[#007E6E] rounded-full mr-4 flex items-center justify-center text-white font-bold">
-                          {testi.display_name?.charAt(0).toUpperCase()}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {testimonials
+                  .filter(t => t.user_id === user.id)
+                  .map((testi) => (
+                    <div
+                      key={testi.id}
+                      className="bg-linear-to-br from-[#007E6E]/10 to-[#007E6E]/5 p-6 rounded-lg shadow border-2 border-[#007E6E] relative"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center flex-1">
+                          <div className="w-12 h-12 bg-[#007E6E] rounded-full mr-4 flex items-center justify-center text-white font-bold">
+                            {testi.display_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">
+                              {testi.display_name}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              {new Date(testi.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="font-semibold">
-                            {testi.display_name}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {new Date(testi.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
 
-                      {user?.id?.toString() === testi.user_id?.toString() && (
                         <button
                           onClick={() =>
                             handleDeleteClick(testi.id, testi.user_id)
@@ -233,25 +256,67 @@ const Testimonials = () => {
                         >
                           ✕
                         </button>
-                      )}
-                    </div>
+                      </div>
 
-                    <div className="text-yellow-400 mb-2">
-                      {"★".repeat(testi.rating)}
-                      {"☆".repeat(5 - testi.rating)}
-                    </div>
+                      <div className="text-yellow-400 mb-2">
+                        {"★".repeat(testi.rating)}
+                        {"☆".repeat(5 - testi.rating)}
+                      </div>
 
-                    <p className="text-gray-600 text-sm">{testi.message}</p>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="col-span-full text-center py-10">
-                <p className="text-gray-500">
-                  No testimonials yet. Be the first to share your experience!
-                </p>
+                      <p className="text-gray-600 text-sm">{testi.message}</p>
+                    </div>
+                  ))}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Other Users' Testimonials */}
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-8">
+              Community Reviews
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {testimonials.filter(t => !user || t.user_id !== user.id).length > 0 ? (
+                testimonials
+                  .filter(t => !user || t.user_id !== user.id)
+                  .map((testi) => (
+                    <div
+                      key={testi.id}
+                      className="bg-gray-100 p-6 rounded-lg shadow relative"
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center flex-1">
+                          <div className="w-12 h-12 bg-[#007E6E] rounded-full mr-4 flex items-center justify-center text-white font-bold">
+                            {testi.display_name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">
+                              {testi.display_name}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              {new Date(testi.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="text-yellow-400 mb-2">
+                        {"★".repeat(testi.rating)}
+                        {"☆".repeat(5 - testi.rating)}
+                      </div>
+
+                      <p className="text-gray-600 text-sm">{testi.message}</p>
+                    </div>
+                  ))
+              ) : (
+                <div className="col-span-full text-center py-10">
+                  <p className="text-gray-500">
+                    No testimonials yet. Be the first to share your experience!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -285,7 +350,28 @@ const Testimonials = () => {
           </div>
         </div>
       )}
-    </div>
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          switchToRegister={() => {
+            setShowLogin(false);
+            setShowRegister(true);
+          }}
+        />
+      )}
+
+      {showRegister && (
+        <Register
+          onClose={() => setShowRegister(false)}
+          switchToLogin={() => {
+            setShowRegister(false);
+            setShowLogin(true);
+          }}
+        />
+      )}
+      </div>
+    </>
   );
 };
 
