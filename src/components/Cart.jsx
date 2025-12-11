@@ -51,26 +51,30 @@ const Cart = () => {
   };
 
   const handleProceedToCheckout = () => {
-    // Delete semua selected items
-    selectedItems.forEach(itemId => {
-      removeFromCart(itemId);
-    });
+    if (selectedItems.length === 0) return;
 
-    // Hitung total dan quantity
     const totalQuantity = getSelectedQuantity();
     const totalPrice = getSelectedTotal();
 
-    // Tampilkan notification
+    // Tampilkan notifikasi dulu
     setNotification(
-      `Checkout successful! ${totalQuantity} items (Rp ${totalPrice.toLocaleString("id-ID")}) - Thank you for your order!`
+      `Checkout successful! ${totalQuantity} items (Rp ${totalPrice.toLocaleString(
+        "id-ID"
+      )}) - Thank you for your order!`
     );
     setFading(false);
 
-    // Fade out notification setelah 2 detik
+    // Baru mulai animasi fade
     setTimeout(() => setFading(true), 2000);
 
-    // Hapus notification setelah fade selesai
+    // Hapus notifikasi
     setTimeout(() => setNotification(null), 2500);
+
+    // Baru hapus item dari cart SETELAH notifikasi muncul
+    setTimeout(() => {
+      selectedItems.forEach((itemId) => removeFromCart(itemId));
+      clearSelectedItems(); // kosongkan selected items juga
+    }, 500); // kasih delay kecil agar UI tidak rerender terlalu cepat
   };
 
   if (cart.length === 0) {
@@ -132,7 +136,8 @@ const Cart = () => {
             {selectedItems.length > 0 && (
               <div className="ml-auto flex items-center gap-4">
                 <span className="text-sm text-gray-600">
-                  {getSelectedQuantity()} item{getSelectedQuantity() !== 1 ? 's' : ''} selected
+                  {getSelectedQuantity()} item
+                  {getSelectedQuantity() !== 1 ? "s" : ""} selected
                 </span>
               </div>
             )}
@@ -183,7 +188,9 @@ const Cart = () => {
                     <div className="flex items-center gap-3">
                       <span className="text-gray-600 text-sm">Quantity:</span>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity - 1)
+                        }
                         className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg"
                       >
                         −
@@ -192,7 +199,9 @@ const Cart = () => {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity + 1)
+                        }
                         className="quantity-btn bg-gray-200 text-gray-800 font-bold py-1 px-3 rounded-lg"
                       >
                         +
@@ -217,13 +226,17 @@ const Cart = () => {
 
             <div className="w-full lg:w-96 bg-linear-to-br from-[#007E6E] to-[#005d52] rounded-2xl p-6 sm:p-8 text-white sticky top-20 lg:top-24 h-fit">
               <h2 className="text-2xl font-bold mb-6">
-                {selectedItems.length > 0 ? "Checkout Summary" : "Order Summary"}
+                {selectedItems.length > 0
+                  ? "Checkout Summary"
+                  : "Order Summary"}
               </h2>
 
               {selectedItems.length > 0 && (
                 <div className="mb-6 pb-6 border-b border-white/20">
                   <p className="text-sm text-white/80 mb-2">Selected Items</p>
-                  <p className="text-2xl font-bold">{getSelectedQuantity()} items selected</p>
+                  <p className="text-2xl font-bold">
+                    {getSelectedQuantity()} items selected
+                  </p>
                 </div>
               )}
 
@@ -232,16 +245,28 @@ const Cart = () => {
                   <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
                     <span>Subtotal ({getSelectedQuantity()} items)</span>
                     <span className="font-semibold">
-                      Rp {new Intl.NumberFormat("id-ID").format(getSelectedTotal())}
+                      Rp{" "}
+                      {new Intl.NumberFormat("id-ID").format(
+                        getSelectedTotal()
+                      )}
                     </span>
                   </div>
                   <div className="flex justify-between mb-4 pb-4 border-b border-white/20">
                     <span>Shipping</span>
-                    <span className={`font-semibold ${getShippingFee() === 0 ? "text-green-500" : ""}`}>
+                    <span
+                      className={`font-semibold ${
+                        getShippingFee() === 0 ? "text-green-500" : ""
+                      }`}
+                    >
                       {getShippingFee() === 0 ? (
                         "FREE"
                       ) : (
-                        <>Rp {new Intl.NumberFormat("id-ID").format(getShippingFee())}</>
+                        <>
+                          Rp{" "}
+                          {new Intl.NumberFormat("id-ID").format(
+                            getShippingFee()
+                          )}
+                        </>
                       )}
                     </span>
                   </div>
@@ -250,14 +275,17 @@ const Cart = () => {
                     <span className="font-semibold">
                       Rp{" "}
                       {new Intl.NumberFormat("id-ID").format(
-                        Math.round((getSelectedTotal() + getShippingFee()) * 0.1)
+                        Math.round(
+                          (getSelectedTotal() + getShippingFee()) * 0.1
+                        )
                       )}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mb-8">
                     <span className="text-xl font-bold">Total</span>
                     <span className="text-3xl font-bold">
-                      Rp {new Intl.NumberFormat("id-ID").format(getFinalTotal())}
+                      Rp{" "}
+                      {new Intl.NumberFormat("id-ID").format(getFinalTotal())}
                     </span>
                   </div>
                 </>
@@ -290,8 +318,10 @@ const Cart = () => {
               <div className="p-6">
                 <p className="text-gray-700 mb-6">
                   Are you sure you want to delete{" "}
-                  <span className="font-bold text-[#007E6E]">{deleteConfirm.itemName}</span> from
-                  your cart?
+                  <span className="font-bold text-[#007E6E]">
+                    {deleteConfirm.itemName}
+                  </span>{" "}
+                  from your cart?
                 </p>
                 <div className="flex gap-3">
                   <button
@@ -316,7 +346,7 @@ const Cart = () => {
       {/* Checkout Notification */}
       {notification && (
         <div
-          className={`fixed inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
+          className={`fixed inset-0 z-[999] flex items-center justify-center pointer-events-none transition-opacity duration-500 ${
             fading ? "opacity-0" : "opacity-100"
           }`}
         >
